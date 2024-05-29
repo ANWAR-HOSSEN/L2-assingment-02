@@ -3,12 +3,10 @@ import { ProductServices } from "./product.service";
 import { productValidationSchema } from "./product.validation";
 import { TProduct } from "./product.interface";
 
-// HACK: product controller to create product
 const createProduct = async (req: Request, res: Response) => {
   try {
     const data = req.body.product;
     const parsedData = productValidationSchema.safeParse(data);
-    // INFO: if zod validation safeParse gives me false then i will throw an error
     if (!parsedData.success) {
       const message = JSON.stringify(parsedData.error);
       throw new Error(message);
@@ -39,13 +37,11 @@ const createProduct = async (req: Request, res: Response) => {
   }
 };
 
-// HACK: get all products controller
 
 const getAllProducts = async (req: Request, res: Response) => {
   try {
     const { searchTerm } = req.query;
     let query: string = "";
-    // INFO: if query is given then the query will be taken and if not then query = ''
     if (searchTerm !== undefined) {
       if (typeof searchTerm === "string") {
         query = searchTerm;
@@ -55,7 +51,6 @@ const getAllProducts = async (req: Request, res: Response) => {
     }
 
     const product = await ProductServices.getAllProductsFromDatabase(query);
-    // NOTE: checking whether product is in database or not
     if (product.length === 0) {
       return res.status(400).json({
         success: false,
@@ -77,7 +72,6 @@ const getAllProducts = async (req: Request, res: Response) => {
   }
 };
 
-// HACK: product controller to get a single data
 const getSingleProduct = async (req: Request, res: Response) => {
   try {
     const { productId } = req.params;
@@ -103,14 +97,12 @@ const getSingleProduct = async (req: Request, res: Response) => {
     });
   }
 };
-// HACK: product controller to update the Data
 
 const updateProduct = async (req: Request, res: Response) => {
   try {
     const { productId } = req.params;
     const data = req.body;
 
-    // NOTE: checking if any data is given or not .. if not then send a Response with that there is nothing to update
     if (Object.keys(data).length === 0) {
       return res.status(400).json({
         success: false,
@@ -119,15 +111,12 @@ const updateProduct = async (req: Request, res: Response) => {
     }
 
 
-    // INFO: if any data is given then checking validation by using zod and used partial
     const parsedData = productValidationSchema.partial().safeParse(data);
   console.log(parsedData);
-    // INFO: if zod validation parsedData.success is false then it will throw error
     if (!parsedData.success) {
       const message = JSON.stringify(parsedData.error);
       throw new Error(message);
     }
-    // INFO: suppose if anyone given random field data which is not in the model then i will show this error
     if (Object.keys(parsedData.data).length === 0) {
       const message = JSON.stringify(
         "Please provide the data according to the field",

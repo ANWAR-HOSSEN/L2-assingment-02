@@ -15,41 +15,37 @@ const product_model_1 = require("../product/product.model");
 const orderSchema = new mongoose_1.Schema({
     email: {
         type: String,
-        required: [true, "An email is needed for order"],
+        required: [true, "want an email"],
     },
     productId: {
         type: String,
-        required: [true, "Product id is needed"],
+        required: [true, "want a Product id"],
     },
     price: {
         type: Number,
-        required: [true, "Price is needed"],
+        required: [true, "want Price"],
     },
     quantity: {
         type: Number,
-        required: [true, "quantity is needed"],
+        required: [true, "want quantity"],
     },
 });
-// INFO: mongoose pre hooks for some extra query
 orderSchema.pre("save", function (next) {
     return __awaiter(this, void 0, void 0, function* () {
         const existProduct = yield product_model_1.Product.findById(this.productId);
-        // NOTE: check if product is available or not
         if (existProduct === null) {
             const message = JSON.stringify("Order Not Found");
             throw new Error(message);
         }
         const orderQuantity = this.quantity;
         const productid = this.productId;
-        const product = yield product_model_1.Product.findOne({ _id: productid }); // INFO: get the product from product collection
+        const product = yield product_model_1.Product.findOne({ _id: productid }); 
         const checkProductQuantity = (product === null || product === void 0 ? void 0 : product.inventory.quantity) - orderQuantity;
-        // INFO: if orderQuantity is greater than the  product quantity then it will throw an error
         if (!((product === null || product === void 0 ? void 0 : product.inventory.quantity) >= orderQuantity)) {
-            const message = JSON.stringify("Insufficient quantity available in inventory");
+            const message = JSON.stringify("quantity unavailable in inventory");
             throw new Error(message);
         }
         if (checkProductQuantity > 0) {
-            // NOTE: if product quantity > 0 then order will be place and quantity will be subtracted from order quantity
             yield product_model_1.Product.findOneAndUpdate({ _id: productid }, {
                 "inventory.quantity": checkProductQuantity,
             }, {
@@ -57,14 +53,13 @@ orderSchema.pre("save", function (next) {
             });
         }
         else {
-            // NOTE: if prdcut quantity < 0 then order will not be placed quantity will be 0 and inStock will be false
             yield product_model_1.Product.findOneAndUpdate({ _id: productid }, {
                 "inventory.quantity": 0,
                 "inventory.inStock": false,
             }, {
                 new: true,
             });
-        } // NOTE: if everything is okay then go to the next();
+        } 
         next();
     });
 });
